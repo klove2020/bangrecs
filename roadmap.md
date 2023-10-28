@@ -56,7 +56,7 @@
 <!-- - [ ] 给app增加相关页面 -->
 
 - [x] 写向量数据库
-- [x] /home/klion/bgmrec/src/model/embedding/embedding_f.py sample函数获取id的方法要重写，拿不回来，不work
+- [x] 重写sample函数
 
 
 - [x] 数据过滤，作为训练数据，新的表格
