@@ -5,13 +5,29 @@ from src.sql.connect import connect_sql
 import pandas as pd
 
 
-def get_read_item_id(uid):
+def get_read_item_id(uid, return_type = "set"):
     conn, cursor = connect_sql(dict=1)
     query = f"SELECT sid from collect WHERE uid = {uid}"
     cursor.execute(query)
     res = cursor.fetchall()
-    read_item_id = set(list(pd.DataFrame(res).sid))
+    if return_type == "set":
+        read_item_id = set(list(pd.DataFrame(res).sid))
+    elif return_type == "list":
+        read_item_id = list(pd.DataFrame(res).sid)
+    else:
+        assert False
+        
+    return read_item_id
 
+
+def get_read_item_id4SARS(uid):
+    conn, cursor = connect_sql(dict=1)
+    query = f"SELECT sid from collect WHERE uid = {uid} AND type = 2 AND rate > 5"
+    cursor.execute(query)
+    res = cursor.fetchall()
+
+    read_item_id = list(pd.DataFrame(res).sid)
+        
     return read_item_id
 
 

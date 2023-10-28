@@ -73,8 +73,6 @@ class MF(nn.Module):
         np.save("MF_uid_list.npy", np.array(self.uid_list))
         np.save("MF_sid_list.npy", np.array(self.sid_list))
 
-        # store_Utensor2sql(self.uid_list, self.U)
-        # store_Itensor2sql(self.sid_list, self.I)
         
 
 def sample(batch_size=64, shuffle=True):

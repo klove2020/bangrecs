@@ -27,3 +27,18 @@ DROP TABLE collectForTrain;
 -- Step 4: 将新表重命名为旧表的名称
 RENAME TABLE collectForTrain_new TO collectForTrain;
 
+
+
+-- ## 添加 c_count
+-- ALTER TABLE collectForTrain ADD s_count INT; -- 先为表添加一个s_count列
+
+-- CREATE TEMPORARY TABLE TempCount AS
+-- SELECT sid, COUNT(*) as s_count
+-- FROM collectForTrain
+-- GROUP BY sid;
+
+-- UPDATE collectForTrain
+-- JOIN TempCount ON collectForTrain.sid = TempCount.sid
+-- SET collectForTrain.s_count = TempCount.s_count;
+
+-- DROP TEMPORARY TABLE TempCount;
