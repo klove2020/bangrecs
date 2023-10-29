@@ -80,7 +80,7 @@ class SASRec4Bangumi(SASRec):
             return None
 
         
-        topk_score = ranked_df.loc[res_sid_list].score
+        topk_score = ranked_df.loc[list(res_df.sid)].score
         
         res_df["trans_score"] = list(topk_score)
         # res_df = res_df[res_df["trans_score"] > 0]

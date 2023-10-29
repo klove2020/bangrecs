@@ -12,6 +12,9 @@ run_script.py
 swagger-ui
 frontend
 
+uwsgi.ini
+uwsgi.pid
+restart_uwsgi.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
