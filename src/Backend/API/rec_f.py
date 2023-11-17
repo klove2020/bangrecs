@@ -6,7 +6,7 @@ from src.datacls.ui_f import UI_cls
 from src.model.seqtransfer.seqtransfer_f import SeqTransfer
 from src.model.embedding.rec_f import MFRec
 from src.model.SARSRec_dir.SASRec4Bangumi_dir import SASRec4Bangumi
-
+from src.model.BanTrans_dir.BanTrans_f import Bantrans4Bangumi
 from src.graphdata.neo4j_f import GraphDB
 import pandas as pd
 import time
@@ -22,6 +22,11 @@ mp = "assets/sarsrec4bgm/SASRec.epoch=201.lr=0.001.layer=2.head=1.hidden=50.maxl
 uid_mapping_path, sid_mapping_path = "assets/sarsrec4bgm/uid_mapping.pkl", "assets/sarsrec4bgm/sid_mapping.pkl"
 sarsrec = SASRec4Bangumi(mp, uid_mapping_path, sid_mapping_path)
 
+bsrrec = Bantrans4Bangumi( 
+        model_path="assets/BanTrans/gal1/process_save/model_checkpoint2.pth",
+        uid_mapping_path="assets/BanTrans/gal1/process_save/uid_mapping.pkl", 
+        sid_mapping_path="assets/BanTrans/gal1/process_save/sid_mapping.pkl"
+    )
 
 # @profile
 
@@ -44,6 +49,8 @@ def get_rec_post(uname, table_name):
         tags
     """
     args_dict = request.json
+
+    print(args_dict)
 
     t = subject_type_process(args_dict)
     update_f = update_f_process(args_dict)
@@ -102,7 +109,7 @@ def get_rec_post(uname, table_name):
 
                 # cache.put(url, user_rec_df)
 
-            elif rec_method in ["p", "p_dev", "MF", "sarsrec"]:
+            elif rec_method in ["p", "p_dev", "MF", "sarsrec", "bsr"]:
                 uid = uname_process(uname)
 
                 max_uid = query_max_uid()
@@ -135,6 +142,10 @@ def get_rec_post(uname, table_name):
 
                 elif rec_method in ["sarsrec"]:
                     user_rec_df = sarsrec.rankitem(uid, **para_dict)
+                
+                elif rec_method in ["bsr"]:
+                    user_rec_df = bsrrec.rankitem(uid, **para_dict)
+
 
                 if type(user_rec_df) == type(None):
                     return jsonify({'message': "没有相关的记录"})
@@ -147,6 +158,9 @@ def get_rec_post(uname, table_name):
         return jsonify({'message': "没有相关的记录"})
     else:
         user_rec_df.subject_type = user_rec_df.subject_type.astype(int)
+
+        # print(user_rec_df)
+
         if t in [1, 2, 3, 4, 6]:
             return jsonify(user_rec_df.query(f"subject_type == {t}").to_dict("records"))
         else:

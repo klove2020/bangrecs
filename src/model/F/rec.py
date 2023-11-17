@@ -11,9 +11,17 @@ def get_read_item_id(uid, return_type = "set"):
     cursor.execute(query)
     res = cursor.fetchall()
     if return_type == "set":
-        read_item_id = set(list(pd.DataFrame(res).sid))
+        try:
+            read_item_id = set(list(pd.DataFrame(res).sid))
+        except:
+            read_item_id = set([])
+    
     elif return_type == "list":
-        read_item_id = list(pd.DataFrame(res).sid)
+        try:
+            read_item_id = list(pd.DataFrame(res).sid)
+        except:
+            read_item_id = []
+    
     else:
         assert False
         
