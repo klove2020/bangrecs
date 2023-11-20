@@ -14,6 +14,8 @@ from src.sql.F import quick_filting_predata
 from src.Backend.API.para_process import *
 from src.Backend.API.filting_f import item_filting, query_tags
 
+from src.model.F.rec import list_2_2d_rec_lists
+
 ui_cls = UI_cls()
 
 # @profile
@@ -78,8 +80,17 @@ def get_trans_post(sid = None, trans_ma_name = "trans_ma"):
         return jsonify({ 'message': "没有相关的记录"})
     else:
         user_rec_df.subject_type = user_rec_df.subject_type.astype(int)
-        if t in [1,2,3,4,6]:
-            return jsonify(user_rec_df.query(f"subject_type == {t}").to_dict("records"))
+        if t in [1,2,3,4,6]:            
+            user_rec_df = user_rec_df.query(f"subject_type == {t}")            
         else:
-            return jsonify(user_rec_df.to_dict("records"))
+            pass
 
+        res_sid_list = list(user_rec_df.sid)
+        relation_list = [[i] for i in res_sid_list][:topk] 
+        
+        response_data = {
+            "data": user_rec_df.to_dict("records"),
+            "relation_list": relation_list
+        }
+
+        return jsonify(response_data)

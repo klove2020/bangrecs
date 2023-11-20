@@ -1,8 +1,10 @@
 from neo4j import GraphDatabase
 import json
 from .tags_f import MixGraphDBTag
+from .relation_f import MixGraphDBRelation
+from .find_tags_f import MixGraphDBFindTag
 
-class GraphDB(MixGraphDBTag):
+class GraphDB(MixGraphDBTag, MixGraphDBRelation, MixGraphDBFindTag):
     def __init__(self):
         uri = "bolt://localhost:7687"
         user = "neo4j"
@@ -11,7 +13,6 @@ class GraphDB(MixGraphDBTag):
 
     def close(self):
         self._driver.close()
-
 
     def exec_read(self, query, parameters=None):
         def _run(tx):
@@ -27,44 +28,6 @@ class GraphDB(MixGraphDBTag):
         with self._driver.session() as session:
             return session.write_transaction(_run, query, parameters)
 
-
-    def find_subjects_by_tag(self, tag_name):
-
-        query = f"""
-                MATCH (s:Subject)-[r:HAS_TAG]->(t:Tag)
-                WHERE r.count >= 10 AND t.name = '{tag_name}'
-                RETURN s.id;
-                """
-
-        result = self.exec_read(query)
-        return [record["s.id"] for record in result]
-
-    def find_subjects_by_ORtags(self, tag_names):
-        query = """
-            MATCH (s:Subject)-[r:HAS_TAG]->(t:Tag)
-            WHERE r.count >= 10 AND t.name IN $tag_names
-            RETURN s.id;
-            """
-        result = self.exec_read(query, {'tag_names': tag_names})
-        return [record["s.id"] for record in result]
-
-    def find_subjects_by_ANDtags(self, tag_names):
-        N = len(tag_names)
-        assert N >= 2
-        s = self.find_subjects_by_tag(tag_names[0])
-        if len(s) == 0:
-            return []
-        else:
-            s = set(s)
-
-        for i in range(1,N):
-            t = tag_names[i]
-            s &= set(self.find_subjects_by_tag(t))
-
-            if len(s) == 0:
-                return []
-        
-        return list(s)
 
     def query_sid_hastags(self):
         query = """
@@ -87,31 +50,6 @@ class GraphDB(MixGraphDBTag):
             return []
         else:
             return [i for i in res]
-
-
-
-    def find_subjects_by_tags(self, tags):
-        if type(tags) == str:
-            return self.find_subjects_by_tag(tags)
-        
-        elif type(tags) == list:
-            if type(tags[0]) == type([]):
-                s = set([])
-                for ts in tags:
-                    if len(ts) == 1:
-                        s |= set(self.find_subjects_by_tag(ts[0])) 
-                    else:
-                        s |= set(self.find_subjects_by_ANDtags(ts))
-                return list(s)
-
-            else:
-                if len(tags) == 1:
-                    return self.find_subjects_by_tag(tags[0])
-                else:
-                    return self.find_subjects_by_ANDtags(tags)
-            
-        else:
-            return None
 
     def write_item_info_tags2neo4j(self, rows):
         with self._driver.session() as session:

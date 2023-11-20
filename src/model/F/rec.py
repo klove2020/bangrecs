@@ -111,3 +111,18 @@ def check_sid_list(_res_sid_list, read_item_id_set, uid, topk):
             break
 
     return res_sid_list  
+
+from src.graphdata.neo4j_f import GraphDB
+gdb = GraphDB()
+
+def list_2_2d_rec_lists(res_sid_list):
+    N = len(res_sid_list)
+
+    for i in range(N):
+        sid = res_sid_list[i]
+        if i == 0:
+            list_ = [[sid]]
+        else:
+            b,list_  = gdb.find_Is_relation_one_vs_list(sid, list_)
+    
+    return list_

@@ -15,6 +15,8 @@ from src.sql.F import quick_filting_predata
 from src.Backend.API.para_process import *
 from src.Backend.API.filting_f import item_filting, query_tags, query_dislike_items
 
+from src.model.F.rec import list_2_2d_rec_lists
+
 ui_cls = UI_cls()
 mfrec = MFRec(model_path="assets/MF/")
 
@@ -66,7 +68,7 @@ def get_rec_post(uname, table_name):
         "type": t,
         "st": st,
         "et": et,
-        "topk": topk,
+        "topk": 2 * topk,
         "popdays": popdays,
         "tags": tags,
         "IsTimeFilter": IsTimeFilter,
@@ -160,8 +162,26 @@ def get_rec_post(uname, table_name):
         user_rec_df.subject_type = user_rec_df.subject_type.astype(int)
 
         # print(user_rec_df)
+        # user_rec_df
 
-        if t in [1, 2, 3, 4, 6]:
-            return jsonify(user_rec_df.query(f"subject_type == {t}").to_dict("records"))
+        # if t in [1, 2, 3, 4, 6]:
+        #     return jsonify(user_rec_df.query(f"subject_type == {t}").to_dict("records"))
+        # else:
+        res_sid_list = list(user_rec_df.sid)
+        relation_list = list_2_2d_rec_lists(res_sid_list) 
+        
+        if rec_method in ["s"]:
+            pass
         else:
-            return jsonify(user_rec_df.to_dict("records"))
+            relation_list = relation_list[:topk]
+
+        # return jsonify(user_rec_df.to_dict("records"))
+
+
+        response_data = {
+            "data": user_rec_df.to_dict("records"),
+            "relation_list": relation_list
+        }
+        
+
+        return jsonify(response_data)
