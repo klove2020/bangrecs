@@ -19,8 +19,8 @@ def airflow_update_sql_item_pop():
     for sid in sid_list[num:]:
         num += 1
         try:
-            df = get_item_interaction(sid)
-            popularity = calculate_popularity(df)
+            df = _get_item_interaction(sid)
+            popularity = _calculate_popularity(df)
             update_item_pop(sid, popularity)    
         except:
             print(f"failed {sid = }")
@@ -51,22 +51,6 @@ def airflow_update_sql_item_pop_stat():
         
         cc = [f"`{c}`" for c in column_names]
 
-        # query = f"""
-        #         INSERT INTO item_pop_stat ({", ".join(["subject_type", "nsfw"] + cc)})
-        #         SELECT 
-        #             {subject_type} AS subject_type,
-        #             {nsfw} as nsfw,
-        #             {",".join([f"SUM(`{column}`) AS `{column}`" for column in column_names])}
-        #         FROM item_pop
-        #         WHERE sid IN {tuple(sidlist)} 
-        #         ON DUPLICATE KEY UPDATE
-        #             {",".join([f"`{column}` = `{column}`" for column in column_names])}
-        #     """
-
-        # cursor.execute(query)
-        # conn.commit()
-        # cursor.close()
-        # conn.close()
         query = f"""
         INSERT INTO item_pop_stat (subject_type, nsfw) VALUES ({subject_type}, {nsfw})
         ON DUPLICATE KEY UPDATE subject_type = {subject_type}, nsfw = {nsfw}
@@ -106,7 +90,7 @@ def airflow_update_sql_item_pop_stat():
 
 
 
-def get_item_interaction(sid):
+def _get_item_interaction(sid):
     conn, cursor = connect_sql(dict=1)
 
     query = f"SELECT datetime_temp, uid FROM collect WHERE sid = {sid}"
@@ -122,7 +106,7 @@ def get_item_interaction(sid):
 
     return df
 
-def calculate_popularity(df):
+def _calculate_popularity(df):
     start_year = 2008
     end_year = 2024
     quarters = [(1, 3), (4, 6), (7, 9), (10, 12)]
@@ -140,7 +124,6 @@ def calculate_popularity(df):
 def update_item_pop(sid, popularity):
     conn, cursor = connect_sql()
 
-    # Enclose column names in backticks
     columns = ", ".join([f"`{key}`" for key in popularity.keys()])
     values = ", ".join(map(str, popularity.values()))
     update_columns = ", ".join([f"`{key}` = {value}" for key, value in popularity.items()])

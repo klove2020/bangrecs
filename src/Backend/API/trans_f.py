@@ -10,7 +10,7 @@ import pandas as pd
 import time
 import numpy as np
 
-from src.sql.F import quick_filting_predata
+# from src.sql.F import quick_filting_predata
 from src.Backend.API.para_process import *
 from src.Backend.API.filting_f import item_filting, query_tags
 

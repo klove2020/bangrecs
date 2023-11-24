@@ -11,7 +11,6 @@ from src.graphdata.neo4j_f import GraphDB
 import pandas as pd
 import time
 
-from src.sql.F import quick_filting_predata
 from src.Backend.API.para_process import *
 from src.Backend.API.filting_f import item_filting, query_tags, query_dislike_items
 
@@ -25,10 +24,23 @@ uid_mapping_path, sid_mapping_path = "assets/sarsrec4bgm/uid_mapping.pkl", "asse
 sarsrec = SASRec4Bangumi(mp, uid_mapping_path, sid_mapping_path)
 
 bsrrec = Bantrans4Bangumi( 
-        model_path="assets/BanTrans/gal1/process_save/model_checkpoint2.pth",
+        model_path="assets/BanTrans/gal1/process_save/model_checkpoint3.pth",
         uid_mapping_path="assets/BanTrans/gal1/process_save/uid_mapping.pkl", 
         sid_mapping_path="assets/BanTrans/gal1/process_save/sid_mapping.pkl"
     )
+
+bsrrec_anime_nsfw = Bantrans4Bangumi( 
+        model_path="assets/BanTrans/anime_nsfw_1/model10.pth",
+        uid_mapping_path="assets/BanTrans/anime_nsfw_1/uid_mapping.pkl", 
+        sid_mapping_path="assets/BanTrans/anime_nsfw_1/sid_mapping.pkl"
+    )
+
+bsrrec_anime = Bantrans4Bangumi( 
+        model_path="assets/BanTrans/anime_1/model_a2.pth",
+        uid_mapping_path="assets/BanTrans/anime_1/uid_mapping.pkl", 
+        sid_mapping_path="assets/BanTrans/anime_1/sid_mapping.pkl"
+    )
+
 
 # @profile
 
@@ -146,7 +158,12 @@ def get_rec_post(uname, table_name):
                     user_rec_df = sarsrec.rankitem(uid, **para_dict)
                 
                 elif rec_method in ["bsr"]:
-                    user_rec_df = bsrrec.rankitem(uid, **para_dict)
+                    if t == 0:
+                        user_rec_df = bsrrec_anime.rankitem(uid, **para_dict)
+                    elif t == 2:
+                        user_rec_df = bsrrec_anime_nsfw.rankitem(uid, **para_dict)
+                    else:
+                        user_rec_df = bsrrec.rankitem(uid, **para_dict)
 
 
                 if type(user_rec_df) == type(None):

@@ -18,7 +18,7 @@ def get_rec_candidate_list():
 
 
 
-def quick_filting_predata():
+def _quick_filting_predata():
     sid_list = get_rec_candidate_list()
 
     connection, cursor = connect_sql(dict=1)
@@ -58,7 +58,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def writ2sql():
-    df = quick_filting_predata()
+    df = _quick_filting_predata()
     # 创建数据库连接
     engine = create_engine("mysql+pymysql://root:abc159753@localhost/bangumi")
     # 将DataFrame写入新的SQL表
