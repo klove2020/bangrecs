@@ -7,6 +7,7 @@ from src.model.seqtransfer.seqtransfer_f import SeqTransfer
 from src.model.embedding.rec_f import MFRec
 from src.model.SARSRec_dir.SASRec4Bangumi_dir import SASRec4Bangumi
 from src.model.BanTrans_dir.BanTrans_f import Bantrans4Bangumi
+from src.model.HT_dir.HT_f import HT
 from src.graphdata.neo4j_f import GraphDB
 import pandas as pd
 import time
@@ -40,6 +41,10 @@ bsrrec_anime = Bantrans4Bangumi(
         uid_mapping_path="assets/BanTrans/anime_1/uid_mapping.pkl", 
         sid_mapping_path="assets/BanTrans/anime_1/sid_mapping.pkl"
     )
+
+ht = HT()
+ht.model["anime_nsfw"] = bsrrec_anime_nsfw
+ht.model["galgame"] = bsrrec
 
 
 # @profile
@@ -123,7 +128,7 @@ def get_rec_post(uname, table_name):
 
                 # cache.put(url, user_rec_df)
 
-            elif rec_method in ["p", "p_dev", "MF", "sarsrec", "bsr"]:
+            elif rec_method in ["p", "p_dev", "MF", "sarsrec", "bsr", "HT"]:
                 uid = uname_process(uname)
 
                 max_uid = query_max_uid()
@@ -165,9 +170,15 @@ def get_rec_post(uname, table_name):
                     else:
                         user_rec_df = bsrrec.rankitem(uid, **para_dict)
 
+                elif rec_method in ["HT"]:
+                    user_rec_df = ht.rankitem(uid, **para_dict)
 
                 if type(user_rec_df) == type(None):
                     return jsonify({'message': "没有相关的记录"})
+                
+                if len(user_rec_df) == 0:
+                    return jsonify({'message': "没有相关的记录"})                
+
                 # cache.put(url, user_rec_df)
 
         else:

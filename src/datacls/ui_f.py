@@ -67,7 +67,9 @@ class UI_cls(MixUiUser, MixUiLocalTime, MixUiRec, MixUiAttri, MixUiCollect):
             if now - last_time < 3600 * 24:
                 pass
             else:
+                print(f"begin update user collect")
                 self._update_collect_table_by_user(collect_info_set)
+                print(f"end update user collect")
 
     def _update_collect_table_by_user(self, collect_info_set):
         r = 0
