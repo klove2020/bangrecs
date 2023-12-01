@@ -6,6 +6,8 @@ import time
 
 def uname_process(i):
     try:
+        if type(i) == type(""):
+            i = i.strip()
         i = int(i)
     except:
         i = query_uid(i)
@@ -37,11 +39,6 @@ def update_f_process(args_dict):
 def tags_process(args_dict):
     tags = args_dict.get('tags', '')
 
-    # print("\n\n\n\n\n\n")
-    # print(f"{type(tags) = }")
-    # print(f"{(tags) = }")
-    # print(f"{(tags[0]) = }")
-    # print("\n\n\n\n\n\n")
     if tags == '' or tags == []:
         tags = []
 
@@ -51,7 +48,7 @@ def tags_process(args_dict):
                 if len(ts) == 0:
                     tags.remove(ts)
 
-    IsTagFilter = args_dict["IsTagFilter"]
+    IsTagFilter = args_dict.get("IsTagFilter", False)
     if len(tags) == 0:
         IsTagFilter = False
 
@@ -62,7 +59,7 @@ def time_process(args_dict):
     s_date = args_dict.get('startDate', pd.Timestamp(1900, 1, 1))
     e_date = args_dict.get('endDate', pd.Timestamp(time.time(), unit="s"))
 
-    IsTimeFilter = args_dict["IsTimeFilter"]
+    IsTimeFilter = args_dict.get("IsTimeFilter", False)
 
     try:
         st = pd.Timestamp(s_date)

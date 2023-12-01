@@ -1,6 +1,6 @@
 import pandas as pd
 from src.sql.connect import connect_sql
-
+from sqlalchemy import create_engine
 
 class modelinit:
     def rankitem(self, uid, **_args):
@@ -9,9 +9,7 @@ class modelinit:
 class HT:
     def __init__(self) -> None:
         self.item_sid_list = {}
-        self._item_sid_list_init()
-
-        self.field_name = list(self.item_sid_list.keys())
+        self._item_sid_list_init()        
 
         self.model = {name:modelinit() for name in self.field_name}
 
@@ -31,17 +29,41 @@ class HT:
         
         self.item_sid_list["galgame"] = _read_fun("data/filting_data/galgame.csv")
         self.item_sid_list["tv"] = _read_fun("data/filting_data/tv.csv")
+
+        self.field_name = list(self.item_sid_list.keys())
+
+        self.field2type_dict  = {
+            "anime":2,
+            "anime_nsfw":2,
+            "comic":1,
+            "comic_nsfw":1,
+            "novel":1,
+            "galgame":4,
+            "tv":6
+        }
+
+        self.HT_item_list_table()
         
     def rankitem(self, uid, **args):
         t = args["type"]
         topk = args["topk"]
+        print(f"{topk=}")
         
         if t == 4:
-            return self.model["galgame"].rankitem(uid, **args)
+            _args = args.copy()
+            _args["candidate_sid"] = list(set(args["candidate_sid"]) & set(self.item_sid_list["galgame"]) )
+            _args["type"] = 4
+            return self.model["galgame"].rankitem(uid, **_args)
+        
         if t == 6:
-            return self.model["tv"].rankitem(uid, **args)
+            _args = args.copy()
+            _args["candidate_sid"] = list(set(args["candidate_sid"]) & set(self.item_sid_list["tv"]) )
+            _args["type"] = 6
+            return self.model["tv"].rankitem(uid, **_args)
 
         type_counts = self._counts_type(uid, t, topk)
+        print("\n\n")
+        print(f"{type_counts=}")
 
         def ff(_field):
             _num = [type_counts[f] for f in _field]
@@ -54,15 +76,80 @@ class HT:
             _prob_dict = {f:num/s for f,num in _num_dict.items()}
             _return_num_dict = {f: int(p * topk) for f,p in _prob_dict.items()}
 
+            print(f"{_return_num_dict=}")
+
+            
             res = []
-            for f in _field:
-                num = _return_num_dict[f]
-                if num == 0:
-                    res.append(pd.DataFrame([]))
+
+            def _fun_res(res, _return_num_dict, _field):
+                new_return_num_dict = {}
+                for f in _field:
+                    num = _return_num_dict[f]
+                    print(f"{f},{num}")
+
+                    if num == 0:
+                        new_return_num_dict[f] = 0
+                        res.append(pd.DataFrame([]))
+                    else:                    
+                        _args = args.copy()
+                        _args["topk"] = num
+                        _args["candidate_sid"] = list(set(args["candidate_sid"]) & set(self.item_sid_list[f]) )   
+                        _args["type"] = self.field2type_dict[f]                 
+
+                        _df = self.model[f].rankitem(uid, **_args)
+                        if type(_df) == type(None):
+                            actual_num = 0
+                        else:
+                            actual_num = len(_df)
+                        
+                        new_return_num_dict[f] = actual_num
+
+                        # print(f"{new_return_num_dict=}")
+                        res.append(_df)
+                        # print(_df) 
+
+                shortfall_field = []
+                full_field = []
+                short_total_num = 0
+                for f in _field:
+                    nn = _return_num_dict[f] - new_return_num_dict[f]  
+                    short_total_num += nn
+                    if nn == 0:
+                        full_field.append(f)
+                    else:
+                        shortfall_field.append(f)
+
+                return res, short_total_num, full_field, shortfall_field
+            
+            res, short_total_num, full_field, shortfall_field = _fun_res(res, _return_num_dict, _field)
+            
+            max_iter = 4
+            ii = 0
+            while short_total_num > 0:
+                ii += 1
+                if ii >= max_iter:
+                    break
+
+                tdf = pd.concat(res)
+                if len(tdf)>0:
+                    args["candidate_sid"] =  list(set(args["candidate_sid"]) - set(tdf.sid))                    
                 else:
-                    _args = args
-                    _args["topk"] = num
-                    res.append(self.model[f].rankitem(uid, **_args)) 
+                    full_field = [i for i in self.field_name if i not in shortfall_field]
+
+                if len(full_field) == 0:
+                    break
+
+                # print(f"{short_total_num=}, {len(full_field)=}")
+                
+                full_field = full_field[:short_total_num]
+                field_num_list = split_integer(short_total_num, len(full_field))
+                _return_num_dict_2 = {f:n for f,n in zip(full_field, field_num_list)}
+                print(f"random split dict, {_return_num_dict_2}")
+
+                res, short_total_num, full_field, shortfall_field = _fun_res(res, _return_num_dict_2, full_field)
+
+
+
             return pd.concat(res)
 
         if t == 2:
@@ -79,11 +166,24 @@ class HT:
             
     def _counts_type(self, uid, t, topk):
         conn, cursor = connect_sql(dict=1)
-        
+
         if t == 0:
-            query = f"SELECT sid FROM collect WHERE uid = {uid} ORDER BY timestamp DESC LIMIT 0, {topk}"
+            query = f"""
+            SELECT c.sid FROM collect c
+            JOIN HT_item_list t ON c.sid = t.sid
+            WHERE c.uid = {uid} 
+            ORDER BY c.timestamp DESC 
+            LIMIT 0, {topk}
+            """
         else:
-            query = f"SELECT sid FROM collect WHERE uid = {uid} AND subject_type = {t} ORDER BY timestamp DESC LIMIT 0, {topk}"
+            query = f"""
+            SELECT c.sid FROM collect c
+            JOIN HT_item_list t ON c.sid = t.sid
+            WHERE c.uid = {uid} 
+            AND t.subject_type = {t} 
+            ORDER BY c.timestamp DESC 
+            LIMIT 0, {topk}
+            """
         
         cursor.execute(query)
         res = cursor.fetchall()
@@ -96,9 +196,7 @@ class HT:
         # 初始化一个字典来记录每种类型的数量
         type_counts = {type_name: 0 for type_name in self.item_sid_list.keys()}
 
-        # 遍历recent_id_list中的每个sid
         for sid in recent_id_list:
-            # 检查sid属于哪种类型
             for type_name, sid_list in self.item_sid_list.items():
                 if sid in sid_list:
                     type_counts[type_name] += 1
@@ -107,3 +205,28 @@ class HT:
         return type_counts
 
 
+    def HT_item_list_table(self):
+
+        data_to_append = []
+        for f in self.field_name:
+            sid_list = self.item_sid_list[f]
+            st = self.field2type_dict[f]
+            c = f
+            
+            for sid in sid_list:
+                data_to_append.append({"sid": sid, "subject_type": st, "class": c})            
+
+        df = pd.DataFrame(data_to_append)
+        engine = create_engine("mysql+pymysql://root:abc159753@localhost/bangumi")
+
+        # 将DataFrame写入新的SQL表
+        df.to_sql('HT_item_list', con=engine, index=False, if_exists='replace')
+
+
+
+import random
+def split_integer(num, parts):    
+    if parts > num:
+        assert False
+    indices = sorted(random.sample(range(1, num), parts - 1))
+    return [j - i for i, j in zip([0] + indices, indices + [num])]

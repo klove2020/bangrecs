@@ -64,7 +64,7 @@ class UI_cls(MixUiUser, MixUiLocalTime, MixUiRec, MixUiAttri, MixUiCollect):
         else:
             last_time = max(max(u.local_update_time.values()), u.last_query_time)
             now = time.time()
-            if now - last_time < 3600 * 24:
+            if now - last_time < 3600 * 24 * 7:
                 pass
             else:
                 print(f"begin update user collect")

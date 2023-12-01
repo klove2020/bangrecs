@@ -1,3 +1,7 @@
+""" 已弃用
+作为bangumi授权使用的身份验证使用
+"""
+
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad

@@ -14,6 +14,9 @@ class SeqTransfer:
         """
         self.table_name = table_name
 
+    def rankitem(self, uid, **args):
+        return self.rec(uid, **args)
+
     # @profile
     def rec(self, uid, **args):
         

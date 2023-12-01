@@ -2,13 +2,15 @@ from flask import Flask, request, jsonify
 import requests
 from flask import redirect
 
-from src.Backend.util.headers_f import add_cors_headers
-from src.Backend.API.rec_f import get_rec_post
-from src.Backend.API.trans_f import get_trans_post
+from src.Backend.network.headers_f import add_cors_headers
+from src.Backend.API.rec_dir.rec_f import get_rec_post
+from src.Backend.API.trans_dir.trans_f import get_trans_post
+from src.Backend.API.search_dir.search_f import get_search_post
 from src.sql.query_f import get_effectivetags_list
 from src.Backend.util.crypto import encrypt, decrypt
-from src.Backend.API.dislike_f import dislike_post
-from src.Backend.API.oauth_f import oauth_callback_fun
+from src.Backend.API.F.dislike_f import dislike_post
+from src.Backend.API.F.oauth_f import oauth_callback_fun
+from src.Backend.util.logging_f import log_request
 
 app = Flask(__name__)
 
@@ -20,6 +22,7 @@ def cors_headers(response):
 
 @app.route('/api/v4/rec/<i>/', methods=['POST'])
 # @profile
+@log_request
 def rec_v4_post(i):
     return get_rec_post(i, table_name="trans_ma")
 
@@ -31,8 +34,15 @@ def rec_v4_post_dev(i):
 
 
 @app.route('/api/v4/trans/<i>/', methods=['POST'])
+@log_request
 def trans_post(i):
     return get_trans_post(i, trans_ma_name="trans_ma")
+
+@app.route('/api/v4/search/', methods=['POST'])
+# @profile
+@log_request
+def search_post():
+    return get_search_post()
 
 
 @app.route('/api/v4/tags_list/', methods=['GET'])
