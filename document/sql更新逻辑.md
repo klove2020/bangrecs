@@ -1,1 +1,0 @@
-candidateItem每天会自动更新
