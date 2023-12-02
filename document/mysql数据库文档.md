@@ -170,7 +170,7 @@ update in 23.12.3
 | 少女漫 |
 
 ### 更新逻辑
-- 构建neo4j effectice tag时生成的，后续还未更新 (可以接受较长时间不更新)
+- 构建neo4j effective tag时生成的，后续还未更新 (可以接受较长时间不更新)
 
 
 
@@ -266,7 +266,7 @@ update in 23.12.3
 
 ## 其他表格
 
-* src/sql/sql_item_pop_f.py 中提供关于 item_pop, item_pop_stat的支持，用与 转移模型的训练时流行度去偏支持
+* src/sql/sql_item_pop_f.py 中提供关于 item_pop, item_pop_stat的支持，用于转移模型训练时的流行度去偏支持
 
 * post_details, threads 中记录小组讨论
 
