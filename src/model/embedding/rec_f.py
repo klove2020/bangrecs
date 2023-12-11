@@ -21,7 +21,8 @@ class MFRec:
         self.uindex_2_uid = {index: uid for uid, index in self.uid_2_uindex.items()}
         self.sindex_2_sid = {index: sid for sid, index in self.sid_2_sindex.items()}
 
-
+    def rankitem(self, uid, **args):
+        return self.rec(uid, **args)
 
     def rec(self, uid, **args):
 
