@@ -29,7 +29,7 @@ def rec_v4_post(i):
 
 
 @app.route('/api/v4/rec4app/<i>/', methods=['GET'])
-# @log_request
+@log_request
 def rec_v4_app(i):
     return get_rec_app(i, table_name="trans_ma")
 
