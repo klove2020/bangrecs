@@ -11,6 +11,7 @@ from src.Backend.util.crypto import encrypt, decrypt
 from src.Backend.API.F.dislike_f import dislike_post
 from src.Backend.API.F.oauth_f import oauth_callback_fun
 from src.Backend.util.logging_f import log_request
+from src.Backend.API.rec_dir.rec4client_f import get_rec_app
 
 app = Flask(__name__)
 
@@ -27,6 +28,12 @@ def rec_v4_post(i):
     return get_rec_post(i, table_name="trans_ma")
 
 
+@app.route('/api/v4/rec4app/<i>/', methods=['GET'])
+# @log_request
+def rec_v4_app(i):
+    return get_rec_app(i, table_name="trans_ma")
+
+
 @app.route('/api/v4/rec_dev/<i>/', methods=['POST'])
 # @profile
 def rec_v4_post_dev(i):
@@ -37,6 +44,7 @@ def rec_v4_post_dev(i):
 @log_request
 def trans_post(i):
     return get_trans_post(i, trans_ma_name="trans_ma")
+
 
 @app.route('/api/v4/search/', methods=['POST'])
 # @profile
@@ -70,12 +78,12 @@ def local_oauth_callback():
     return jsonify({"uid": uid})
 
 
-# ## 后面弃用
+# 弃用
 @app.route('/api/v3/rec/<i>/', methods=['GET'])
 def rec_v3(i):
     return jsonify({"message": "可以更新了，快催咕咕子更新 >_<，线上网址 bangrecs.net"})
 
-# ## 后面弃用
+# 弃用
 @app.route('/api/v4/rec/<i>/', methods=['GET'])
 def rec_v4(i):
     return jsonify({"message": "此API被弃用, 线上网址 bangrecs.net"})
