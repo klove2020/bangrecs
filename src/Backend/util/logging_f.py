@@ -34,7 +34,6 @@ logger.addHandler(handler)
 def log_request(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # 记录请求信息
         p = request.path
         uname = ""
         ip = ""
@@ -45,33 +44,26 @@ def log_request(func):
         except:
             pass
 
-        if request.json:
+        # 处理 POST 请求中的 JSON 数据
+        if request.method == 'POST' and request.json:
             js = request.json
             strategy = js.get("strategy", "")
+            logger.info(f"Body: {json.dumps(js)}")
 
+        # 处理 GET 请求中的查询参数
+        if request.method == 'GET':
+            rargs = request.args
+            strategy = rargs.get("strategy", "app")
+            logger.info(f"Query Params: {rargs}")
+
+        # 获取请求的 IP 地址
         if request.headers:
             rh = request.headers            
             ip = rh.get("Cf-Connecting-Ip", "")
 
-        logger.info(f"\n \n{ip = }, {uname = }, {strategy=}", )
+        logger.info(f"\n \n{ip = }, {uname = }, {strategy=}")
         logger.info(f"Path: {p}")
         logger.info(f"Method: {request.method}")
-        if request.json:
-            js = request.json
-            logger.info(f"Body: {json.dumps(js)}")
-            strategy = js.get("strategy", "")
-
-        if request.args:
-            rargs = request.args
-            logger.info(f"Query Params: {rargs}")
-            
-            
-
-        # if request.headers:
-        #     rh = request.headers
-        #     logger.info(f"Headers: {rh}")
-
-
 
         # 调用原始函数
         response = func(*args, **kwargs)

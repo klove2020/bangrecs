@@ -13,7 +13,8 @@ from src.Backend.API.F.oauth_f import oauth_callback_fun
 from src.Backend.util.logging_f import log_request
 from src.Backend.API.rec_dir.rec4client_f import get_rec_app
 
-app = Flask(__name__)
+from src.Backend.API.app_f import app
+# app = Flask(__name__)
 
 
 @app.after_request

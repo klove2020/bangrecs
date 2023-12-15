@@ -35,8 +35,8 @@ def get_rec_app(uname, table_name):
         tags
     """
 
-
     args_dict = request.args
+
 
     t = subject_type_process(args_dict)
     update_f = update_f_process(args_dict)
