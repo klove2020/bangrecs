@@ -16,7 +16,8 @@ def _get_candidate_list():
 def item_filting(para, flag = "0"):
     if flag == "search":
         max_sid = query_max_sid()
-        sid_set = set(range(1,max_sid+1))        
+        sid_set = set(range(1,max_sid+1))    
+    
     else:
         sid_set = set(_get_candidate_list())
 

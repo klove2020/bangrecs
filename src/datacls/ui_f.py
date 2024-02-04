@@ -71,6 +71,7 @@ class UI_cls(MixUiUser, MixUiLocalTime, MixUiRec, MixUiAttri, MixUiCollect):
                 self._update_collect_table_by_user(collect_info_set)
                 print(f"end update user collect")
 
+    # @profile
     def _update_collect_table_by_user(self, collect_info_set):
         r = 0
         while len(collect_info_set) > 0: 

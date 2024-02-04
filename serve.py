@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import requests
 from flask import redirect
+import json
 
 from src.Backend.network.headers_f import add_cors_headers
 from src.Backend.API.rec_dir.rec_f import get_rec_post
@@ -12,6 +13,7 @@ from src.Backend.API.F.dislike_f import dislike_post
 from src.Backend.API.F.oauth_f import oauth_callback_fun
 from src.Backend.util.logging_f import log_request
 from src.Backend.API.rec_dir.rec4client_f import get_rec_app
+from src.Backend.API.rec_dir.rec4app2_f import get_rec_app2
 
 from src.Backend.API.app_f import app
 # app = Flask(__name__)
@@ -33,6 +35,12 @@ def rec_v4_post(i):
 @log_request
 def rec_v4_app(i):
     return get_rec_app(i, table_name="trans_ma")
+
+
+@app.route('/api/v4/rec4app2/<i>/', methods=['POST'])
+@log_request
+def rec_v4_app2(i):
+    return get_rec_app2(i, table_name="trans_ma")
 
 
 @app.route('/api/v4/rec_dev/<i>/', methods=['POST'])
@@ -90,6 +98,69 @@ def rec_v4(i):
     return jsonify({"message": "此API被弃用, 线上网址 bangrecs.net"})
 
 
+# if __name__ == '__main__':
+#     app.run(port=8085, debug=True)
+#     # app.run(port = 8085, use_reloader=False)
+
+
+
+# test
+# @profile
+def test_post_request():
+    with app.test_client() as client:
+        # 您提供的JSON数据
+        data = {
+            "type": 6,
+            "update_f": True,
+            "strategy": "p",
+            "IsTimeFilter": False,
+            "IsTagFilter": False,
+            "startDate": "2020-01-30",
+            "endDate": "2024-01-30",
+            "topk": 10,
+            "popdays": 7,
+            "collects": [
+                {
+                    "updated_at": "2024-01-28T01:08:41+08:00",
+                    "comment": "xxx",
+                    "subject_id": 147068,
+                    "subject_type": 2,
+                    "vol_status": 0,
+                    "ep_status": 0,
+                    "type": 2,
+                    "rate": 10
+                },
+                {
+                    "updated_at": "2024-01-28T01:09:41+08:00",
+                    "comment": "xxx",
+                    "subject_id": 876,
+                    "subject_type": 2,
+                    "vol_status": 0,
+                    "ep_status": 0,
+                    "type": 2,
+                    "rate": 0
+                },
+                {
+                    "updated_at": "2024-01-28T01:09:41+08:00",
+                    "comment": "xxx",
+                    "subject_id": 2600,
+                    "subject_type": 6,
+                    "vol_status": 0,
+                    "ep_status": 0,
+                    "type": 2,
+                    "rate": 0
+                },
+            ]
+        }
+
+        data_json = json.dumps(data)
+        
+        # 注意: 如果您的端点需要其他类型的头部（如认证信息），请相应地添加
+        response = client.post('/api/v4/rec4app2/klove/', data=data_json, content_type='application/json')
+
+        decoded_data = response.data.decode('utf-8')
+        response_dict = json.loads(decoded_data)
+        print(json.dumps(response_dict, indent=2, ensure_ascii=False))
+
 if __name__ == '__main__':
-    app.run(port=8085, debug=True)
-    # app.run(port = 8085, use_reloader=False)
+    test_post_request()

@@ -8,6 +8,7 @@ extension
 assets
 run_script.py
 cc.zip
+*.lprof
 
 # other resp
 swagger-ui

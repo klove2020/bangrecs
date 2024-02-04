@@ -19,6 +19,7 @@ ui_cls = UI_cls()
 
 from .load_model_f import mfrec, sarsrec,  ht 
 
+# @profile
 def get_rec_post(uname, table_name):
     """
     args_dict:
@@ -69,7 +70,8 @@ def get_rec_post(uname, table_name):
 
         if type(cache_res) == type(None):
 
-            para_dict["candidate_sid"] = item_filting(para_dict)
+            para_dict["candidate_sid"] = item_filting(para_dict, flag = "search")
+            # para_dict["candidate_sid"] = "all"
             user_rec_df = ui_cls.rec_pop(**para_dict)
             if type(user_rec_df) == type(None):
                 return jsonify({'message': "没有相关的记录"})
@@ -83,7 +85,7 @@ def get_rec_post(uname, table_name):
     elif rec_method in ["p", "p_dev", "MF", "sarsrec", "HT"]:
         uid = uname_process(uname)
 
-        max_uid = query_max_uid()
+        max_uid = 10000000
         if type(uid) == int:
             if 0 < uid <= max_uid:
                 pass

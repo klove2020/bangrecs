@@ -84,3 +84,9 @@ def run_spider(collect_info_set):
     items = s.run(urls)
 
     return items
+
+
+# import requests
+# a = []
+# for u in urls:
+#     a.append(requests.get(u, headers=headers))

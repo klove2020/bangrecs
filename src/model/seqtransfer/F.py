@@ -40,8 +40,21 @@ def tag_similar_weight(tag_list1, tag_list2):
         return len(s1&s2) / ( np.sqrt(s1_num) * np.sqrt(s2_num) )
 
 def select_history_seq(uid, **args):
+    num = 10
+
     type_ = args["type"]
     IsTagFilter = args["IsTagFilter"]
+
+    collects = args.get("collects", None)
+
+    InCollects = False
+    if type(collects) != type(None):
+        InCollects = True
+        ddf = pd.DataFrame(collects).query("type == 2 and (rate >= 0 or rate >= 5)")
+        ddf["timestamp"] = ddf["updated_at"].apply(lambda x:pd.Timestamp(x).timestamp())
+        ddf = ddf.sort_values(by="timestamp",ascending=False)
+        ddf["sid"] = ddf["subject_id"]
+        
 
     if IsTagFilter:
         tags = args["tags"]
@@ -56,23 +69,42 @@ def select_history_seq(uid, **args):
         
         else:
             excmd = f" AND sid in {tuple(sid_list)} "
+
+        if InCollects:
+            ddf = ddf[ddf["subject_id"].isin([sid_list])]
     else:
         excmd = " AND TRUE "
 
     if type_ == 1:
-        typecmd = f" AND subject_type in (1,2) "
-        df = _query2df(uid, typecmd + excmd)
+        if InCollects:
+            search_types = [1,2]
+            ddf_ = ddf[ddf["subject_type"].isin(search_types)]
+            df = ddf_.iloc[:num]
+        else:
+            typecmd = f" AND subject_type in (1,2) "
+            df = _query2df(uid, typecmd + excmd)
     
     elif type_ in [2, 6]:
-        typecmd = f" AND subject_type = {type_} "
-        df = _query2df(uid, typecmd + excmd)
+        if InCollects:
+            search_types = [type_]
+            ddf_ = ddf[ddf["subject_type"].isin(search_types)]
+            df = ddf_.iloc[:num]
+        else:
+            typecmd = f" AND subject_type = {type_} "
+            df = _query2df(uid, typecmd + excmd)
     
     elif type_ == 4:
-        typecmd = f" AND subject_type = {4} "
-        df1 = _query2df(uid, typecmd + excmd, num=8)
+        if InCollects:
+            ddf_ = ddf[ddf["subject_type"].isin([4])]
+            df1 = ddf_.iloc[:int(num*0.8)]
+            ddf_ = ddf[ddf["subject_type"].isin([2])]
+            df2 = ddf_.iloc[:int(num*0.2)]
+        else:
+            typecmd = f" AND subject_type = {4} "
+            df1 = _query2df(uid, typecmd + excmd, num=8)
 
-        typecmd = f" AND subject_type = {2} "
-        df2 = _query2df(uid, typecmd + excmd, num=2)
+            typecmd = f" AND subject_type = {2} "
+            df2 = _query2df(uid, typecmd + excmd, num=2)
 
         if len(df1) == 0:
             return df2
@@ -82,12 +114,20 @@ def select_history_seq(uid, **args):
             df = pd.concat([df1, df2]).sort_values(by="timestamp", ascending = False)
 
     elif type_ == 3:
-        typecmd = f" AND subject_type in (2,3,4,6) "
-        df = _query2df(uid, typecmd + excmd)
+        if InCollects:
+            search_types = [2,3,4,6]
+            ddf_ = ddf[ddf["subject_type"].isin(search_types)]
+            df = ddf_.iloc[:num]
+        else:
+            typecmd = f" AND subject_type in (2,3,4,6) "
+            df = _query2df(uid, typecmd + excmd)
 
     else:
-        typecmd = " AND TRUE "
-        df = _query2df(uid, typecmd + excmd)
+        if InCollects:
+            df = ddf.iloc[:num]
+        else:
+            typecmd = " AND TRUE "
+            df = _query2df(uid, typecmd + excmd)
 
     return df
 
